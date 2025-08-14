@@ -33,22 +33,22 @@ const getPriority = (blockchain: string): number => {
 };
 
 export default function WalletPage({ balances, prices }: Props) {
-  const sortedBalances = useMemo(() => {
-    const temp = balances
+  const sortedBalances: FormattedWalletBalance[] = useMemo(() => {
+    const filteredBalances = balances
       .filter(
-        (balance: WalletBalance) =>
-          getPriority(balance.blockchain) > -99 && balance.amount <= 0
+        (item: WalletBalance) =>
+          getPriority(item.blockchain) > -99 && item.amount <= 0
       )
       .sort(
         (lhs: WalletBalance, rhs: WalletBalance) =>
           getPriority(rhs.blockchain) - getPriority(lhs.blockchain)
       );
 
-    const result = temp.map((balance: WalletBalance) => {
+    const result = filteredBalances.map((item: WalletBalance) => {
       return {
-        formatted: balance.amount.toFixed(),
-        amount: balance.amount,
-        usdValue: prices[balance.currency] * balance.amount,
+        formatted: item.amount.toFixed(),
+        amount: item.amount,
+        usdValue: prices[item.currency] * item.amount,
       } as FormattedWalletBalance;
     });
 
