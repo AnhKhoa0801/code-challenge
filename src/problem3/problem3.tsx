@@ -37,24 +37,14 @@ export default function WalletPage(props: Props) {
 
   const sortedBalances = useMemo(() => {
     const temp = balances
-      .filter((balance: WalletBalance) => {
-        const balancePriority = getPriority(balance.blockchain);
-        if (balancePriority > -99) {
-          if (balance.amount <= 0) {
-            return true;
-          }
-        }
-        return false;
-      })
-      .sort((lhs: WalletBalance, rhs: WalletBalance) => {
-        const leftPriority = getPriority(lhs.blockchain);
-        const rightPriority = getPriority(rhs.blockchain);
-        if (leftPriority > rightPriority) {
-          return -1;
-        } else if (rightPriority > leftPriority) {
-          return 1;
-        }
-      });
+      .filter(
+        (balance: WalletBalance) =>
+          getPriority(balance.blockchain) > -99 && balance.amount <= 0
+      )
+      .sort(
+        (lhs: WalletBalance, rhs: WalletBalance) =>
+          getPriority(rhs.blockchain) - getPriority(lhs.blockchain)
+      );
 
     const result = temp.map((balance: WalletBalance) => {
       return {
