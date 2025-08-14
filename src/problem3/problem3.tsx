@@ -1,20 +1,24 @@
 interface WalletBalance {
   currency: string;
   amount: number;
+  blockchain: string;
 }
+
 interface FormattedWalletBalance {
-  currency: string;
   amount: number;
   formatted: string;
+  usdValue: number;
 }
 
 interface Props extends BoxProps {}
-const WalletPage: React.FC<Props> = (props: Props) => {
-  const { children, ...rest } = props;
+
+export default function WalletPage(props: Props) {
+  const { ...rest } = props;
+
   const balances = useWalletBalances();
   const prices = usePrices();
 
-  const getPriority = (blockchain: any): number => {
+  const getPriority = (blockchain: string): number => {
     switch (blockchain) {
       case "Osmosis":
         return 100;
@@ -32,10 +36,10 @@ const WalletPage: React.FC<Props> = (props: Props) => {
   };
 
   const sortedBalances = useMemo(() => {
-    return balances
+    const temp = balances
       .filter((balance: WalletBalance) => {
         const balancePriority = getPriority(balance.blockchain);
-        if (lhsPriority > -99) {
+        if (balancePriority > -99) {
           if (balance.amount <= 0) {
             return true;
           }
@@ -51,29 +55,30 @@ const WalletPage: React.FC<Props> = (props: Props) => {
           return 1;
         }
       });
+
+    const result = temp.map((balance: WalletBalance) => {
+      return {
+        formatted: balance.amount.toFixed(),
+        amount: balance.amount,
+        usdValue: prices[balance.currency] * balance.amount,
+      } as FormattedWalletBalance;
+    });
+
+    return result;
   }, [balances, prices]);
 
-  const formattedBalances = sortedBalances.map((balance: WalletBalance) => {
-    return {
-      ...balance,
-      formatted: balance.amount.toFixed(),
-    };
-  });
-
-  const rows = sortedBalances.map(
-    (balance: FormattedWalletBalance, index: number) => {
-      const usdValue = prices[balance.currency] * balance.amount;
-      return (
-        <WalletRow
-          className={classes.row}
-          key={index}
-          amount={balance.amount}
-          usdValue={usdValue}
-          formattedAmount={balance.formatted}
-        />
-      );
-    }
+  return (
+    <div {...rest}>
+      {sortedBalances.map((item: FormattedWalletBalance, index: number) => {
+        return (
+          <WalletRow
+            key={index}
+            amount={item.amount}
+            usdValue={item.usdValue}
+            formattedAmount={item.formatted}
+          />
+        );
+      })}
+    </div>
   );
-
-  return <div {...rest}>{rows}</div>;
-};
+}
