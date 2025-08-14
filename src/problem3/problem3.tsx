@@ -10,31 +10,29 @@ interface FormattedWalletBalance {
   usdValue: number;
 }
 
-interface Props extends BoxProps {}
+interface Props {
+  balances: WalletBalance[];
+  prices: Record<string, number>;
+}
 
-export default function WalletPage(props: Props) {
-  const { ...rest } = props;
+const getPriority = (blockchain: string): number => {
+  switch (blockchain) {
+    case "Osmosis":
+      return 100;
+    case "Ethereum":
+      return 50;
+    case "Arbitrum":
+      return 30;
+    case "Zilliqa":
+      return 20;
+    case "Neo":
+      return 20;
+    default:
+      return -99;
+  }
+};
 
-  const balances = useWalletBalances();
-  const prices = usePrices();
-
-  const getPriority = (blockchain: string): number => {
-    switch (blockchain) {
-      case "Osmosis":
-        return 100;
-      case "Ethereum":
-        return 50;
-      case "Arbitrum":
-        return 30;
-      case "Zilliqa":
-        return 20;
-      case "Neo":
-        return 20;
-      default:
-        return -99;
-    }
-  };
-
+export default function WalletPage({ balances, prices }: Props) {
   const sortedBalances = useMemo(() => {
     const temp = balances
       .filter(
@@ -58,7 +56,7 @@ export default function WalletPage(props: Props) {
   }, [balances, prices]);
 
   return (
-    <div {...rest}>
+    <div>
       {sortedBalances.map((item: FormattedWalletBalance, index: number) => {
         return (
           <WalletRow
